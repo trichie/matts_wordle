@@ -54,7 +54,7 @@ open('result.csv', 'w').write('\n'.join(result:=set(','.join(sorted(k.split('_')
 
 
 ## What the code actually does
-The basic idea: As the runtime of any algorithm for finding all possible combinations of five words with all distinct letters will be $O(n_1*n_2*n_3*n_4*n_5)$, we must keep our numbers of words $n_i$ for the first, second, etc. word as small as only possible. Hence the first thing we must do is to get rid of as many words as possible beforehand and divide our problem into as small as only possible subgroups.
+The basic idea: As the runtime of any algorithm for finding all possible combinations of five words with all distinct letters will be $O(n_1 * n_2 * n_3 * n_4 * n_5)$, we must keep our numbers of words $n_i$ for the first, second, etc. word as small as only possible. Hence the first thing we must do is to get rid of as many words as possible beforehand and divide our problem into as small as only possible subgroups.
 
 We can also make use of the fact that there are only 26 valid words such as crypt, glyph or nymph in the word list that contain none of the five vowels a, e, i, o, or u. This means that a combination of five words can only contain a word with two vowels if at least one of them contains none. As can be seen easily (almost all of these either contain either an x or a y), the maximum number of words from that vowelless list that can be combined is two.
 
