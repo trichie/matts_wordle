@@ -1,4 +1,4 @@
-# Matt Parker's Wordle challenge - the *25 second pythonic vowel approach*
+# Matt Parker's Wordle challenge - the *25 letters in 25 seconds pythonic vowel approach*
 
 (c) by Thomas Reichert
 
