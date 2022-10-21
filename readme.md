@@ -64,7 +64,7 @@ So we solve the problem in three parts:
 
 * Five words where each contains none or one vowel -- here we can even split the word list by vowel to speed things up: The numbers of max-one-vowel words are {'a': 572, 'e': 394, 'i': 435, 'o': 412, 'u': 349}.
 * One out of 24 words that contains no vowel, three out of 2066 words that contain at most one and one out of 5438 words that contains at most two vowels
-* Two out of 24 words that contain no vowel, one out of {{ len(valid.get(1)) }} words that contains at most one and two out of 5960 words that contain at most three vowels
+* Two out of 24 words that contain no vowel, one out of 2066 words that contains at most one and two out of 5960 words that contain at most three vowels
 
 and build everything together to find the 538 combinations without anagrams. While clearly being way off the results from the super fast precompiled languages, I was at least able to get a runtime of about 25 seconds on a M1 Macbook Pro and beat [Benjamin Paassen's graph theory approach](https://gitlab.com/bpaassen/five_clique), which was the first decently fast pure Python approach that I am aware of (sorry to anybody that meanwhile wrote it faster in Python and I missed out on their code) and served as my benchmark, by approximately a factor of approximately 50 ;-)
 
