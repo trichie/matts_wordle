@@ -1,4 +1,4 @@
-# 11 lines of single-threaded Python code without any packages that solve Matt Parker's Wordle challenge in 11 seconds on a M1 Macbook Pro
+# 11 lines of single-threaded Python code without any packages that solve Matt Parker's Wordle challenge in 11 seconds
 
 (c) by Thomas Reichert
 
