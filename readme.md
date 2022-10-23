@@ -1,4 +1,4 @@
-# 11 lines of single-threaded Python code without any packages that solve Matt Parker's Wordle challenge in 11 seconds
+# 11 lines of single-threaded Python code without any packages that solve Matt Parker's Wordle challenge in 11 seconds - and 18 lines that allow for just numpy and do so in 4
 
 (c) by Thomas Reichert
 
@@ -35,23 +35,22 @@ def val(f='words_alpha.txt', ana=True): # ana = True drops anagrams which speed
 x = val(); valid = {str(n): {k: v for k, v in x.items() if (len(set(k) & set('aeiou'))<=n)} for n in range(4)}
 valid.update({i: {k: v for k, v in valid['1'].items() if len(set(k) & set(j))>0}
               for i, j in {'a':'a','e':'e','i':'i','o':'o','u':'u','x':'eou','y':'eiu','z':'aeu'}.items()})
-result = [k for d in [cmb([valid[v] for v in i]) for i in ['ueoia', '0zyx2', '00133']] for k in d.keys()]
+result = [k for d in [cmb([valid[v] for v in i]) for i in ['ueoia', '0xyz2', '00133']] for k in d.keys()]
 open('result.csv', 'w').write('\n'.join(result:=set(','.join(sorted(k.split('_'))) for k in result)))
 ```
 
-    100%|██████████| 325/325 [00:00<00:00, 33236.99it/s]
-    100%|██████████| 26642/26642 [00:00<00:00, 58850.33it/s]
-    100%|██████████| 297146/297146 [00:04<00:00, 69261.17it/s]
-    100%|██████████| 110545/110545 [00:02<00:00, 51549.54it/s]
-    100%|██████████| 24/24 [00:00<00:00, 13660.37it/s]
-    100%|██████████| 2992/2992 [00:00<00:00, 23730.78it/s]
-    100%|██████████| 30617/30617 [00:01<00:00, 25933.57it/s]
-    100%|██████████| 10308/10308 [00:01<00:00, 5391.58it/s]
-    100%|██████████| 24/24 [00:00<00:00, 491040.47it/s]
-    100%|██████████| 10/10 [00:00<00:00, 12108.27it/s]
-    100%|██████████| 222/222 [00:00<00:00, 4591.90it/s]
-    100%|██████████| 4758/4758 [00:00<00:00, 4844.48it/s]
-
+    100%|██████████| 325/325 [00:00<00:00, 33364.72it/s]
+    100%|██████████| 26642/26642 [00:00<00:00, 61043.77it/s]
+    100%|██████████| 297146/297146 [00:04<00:00, 67659.06it/s]
+    100%|██████████| 110545/110545 [00:02<00:00, 50294.57it/s]
+    100%|██████████| 24/24 [00:00<00:00, 15524.88it/s]
+    100%|██████████| 2606/2606 [00:00<00:00, 23327.50it/s]
+    100%|██████████| 25392/25392 [00:01<00:00, 22169.83it/s]
+    100%|██████████| 10308/10308 [00:01<00:00, 5294.64it/s]
+    100%|██████████| 24/24 [00:00<00:00, 453438.27it/s]
+    100%|██████████| 10/10 [00:00<00:00, 11808.29it/s]
+    100%|██████████| 222/222 [00:00<00:00, 4498.20it/s]
+    100%|██████████| 4758/4758 [00:01<00:00, 4723.53it/s]
 
 ## What the code actually does
 As the runtime of this algorithm for finding all possible combinations of five words with all distinct letters will be $O(n_1 * n_2 * n_3 * n_4 * n_5)$, we must keep our numbers of words $n_i$ for the first, second, etc. word as small as only possible. Hence the first thing we must do is to get rid of as many words as possible beforehand and divide our problem into as small as only possible subgroups.
@@ -68,6 +67,32 @@ So we solve the problem in three parts, each of them starting from the smallest 
 
 and build everything together to find the 538 combinations without anagrams. While clearly being way off the results from the super fast precompiled languages, I was at least able to get a runtime of about 11 seconds on a M1 Macbook Pro and beat [Benjamin Paassen's graph theory approach](https://gitlab.com/bpaassen/five_clique), which was the first decently fast pure Python approach that I am aware of (sorry to anybody that meanwhile wrote it faster in Python and I missed out on their code) and served as my benchmark, by approximately a factor of approximately 120 ;-)
 
+## Speeding up everything by allowing for vectorized numpy operations
+Dropping the *no imported packages* constraint, I was able to speed up the code by roughly factor 3 using the well-known *numpy* package which allows for much faster vectorized operations instead of time costly for loops which are a known speed bottleneck in Python. This solution is conceptionally still the same algorithm, still single-threaded, below 20 lines of Python code and runs in 4 seconds. 
+
+Will continue trying other optimization techniques - curious where the journey will take me ;-)
+
+
+```python
+from tqdm import tqdm; import numpy as np
+def npcmb(x):  # function that combines words recursively to tuples, triples, quadruples and quintuples
+    if len(x) > 1:
+        kx, vx, ky, vy = list(x[0].keys()), list(x[0].values()), list(x[1].keys()), list(x[1].values())
+        tmp = np.where(np.bitwise_and(np.array(vx).repeat(len(vy)).reshape(len(vx), len(vy)),
+                                      np.array(vy).repeat(len(vx)).reshape(len(vy), len(vx)).transpose())==0)
+        tmp = [{'_'.join([kx[tmp[0][i]], ky[tmp[1][i]]]): vx[tmp[0][i]] | vy[tmp[1][i]]
+                       for i in range(len(tmp[0]))}] + x[2:]
+        return npcmb(tmp)
+    return x[0]
+def val(f='words_alpha.txt', ana=True): # ana = True drops anagrams which speeds up code by factor 2
+    tmp = {w: sum(1<<(ord(c)-97) for c in w) for w in open(f).read().split('\n') if (len(w)==len(set(w))==5)}
+    return {v: k for k, v in {v: k for k, v in tmp.items()}.items()} if ana else tmp
+x = val(); valid = {str(n): {k: v for k, v in x.items() if (len(set(k) & set('aeiou'))<=n)} for n in range(4)}
+valid.update({i: {k: v for k, v in valid['1'].items() if len(set(k) & set(j))>0}
+              for i, j in {'a':'a','e':'e','i':'i','o':'o','u':'u','x':'eou','y':'eiu','z':'aeu'}.items()})
+result = [k for d in [npcmb([valid[v] for v in i]) for i in ['ueoia', '0xyz2', '00133']] for k in d.keys()]
+open('result.csv', 'w').write('\n'.join(result:=set(','.join(sorted(k.split('_'))) for k in result)))
+```
 
 ## The result
 Here are the 538 word combinations without anagrams:
@@ -79,10 +104,6 @@ result
 ```
 
     538
-
-
-
-
 
     {'ampyx,bejig,fconv,hdqrs,klutz',
      'ampyx,bewig,fconv,hdqrs,klutz',
@@ -624,11 +645,12 @@ result
      'glack,hdqrs,jowpy,muntz,vibex'}
 
 
+
 ## Some final thoughts
 
 Even though this approach clearly is no speed champ, my hope is that this *vowel based reduction of possible word combinations that need to be checked* can maybe help somebody else's super fast algorithm to even save a bit more time ;-)
 
-What I found a surprise in the progress is that only a few out of these 538 combinations contain none of those 24 non-vowel words. Unfortunately finding exactly those few combinations is currently the speed bottleneck of my approach. Originally I thought that combinations with non-vowel words would be the exception rather than the rule, but I had to learn that using one of them opens the chance for another one to contain one word with two vowels, which are 2.6 times more frequent than words with only one vowel.
+What I found a surprise in the progress is that only a few out of these 538  combinations contain none of those 24 non-vowel words. Unfortunately finding exactly those few combinations is currently the speed bottleneck of my approach. Originally I thought that combinations with non-vowel words would be the exception rather than the rule, but I had to learn that using one of them opens the chance for another one to contain one word with two vowels, which are 2.6 times more frequent than words with only one vowel.
 
 ## Appendix
 ### Numbers of words that contain only the allowed vowels and no others by vowel or vowel triple
@@ -658,14 +680,11 @@ Overall there are 5 vowels (which we will use all) and 10 possible vowel triples
      'eou': 1083,
      'iou': 1124}
 
-
 ### Proof that the 3 selected vowel triples allow all 10 vowel combinations of 3 one-vowel words
-
 
 ```python
 import itertools
 len(sorted(list(set(''.join(sorted(i)) for i in list(
     itertools.product(*[list('eou'), list('eiu'), list('aeu')]))if len(set(i))==3))))
 ```
-
     10
